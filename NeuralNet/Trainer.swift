@@ -11,40 +11,81 @@ import Cocoa
 class Trainer: NSObject {
     
     @IBOutlet weak var snakeView : SnakeView!
-    @IBOutlet weak var genView : NSTextField!
+    @IBOutlet weak var genLabel : NSTextField!
     @IBOutlet weak var progressLabel : NSTextField!
+    @IBOutlet weak var scoreLabel : NSTextField!
     @IBOutlet weak var progressBar : NSProgressIndicator!
     var shouldRun : Bool = false
+    var needsRepopulate : Bool = false
+    var needsInitialize : Bool = true
     var snakeGame : SnakeGame!
     var networks : [Network] = []
     var outputs : [Double] = []
     var currentGen : Int = 0
     
     let queue = DispatchQueue(label: "com.maya.neural-net")
-
+    
     @IBAction func newRun(_ sender: Any) {
+        queue.async {
+            self.newRun()
+        }
+    }
+    
+    func newRun() {
         networks = []
         //populate the array with randomized networks
+        DispatchQueue.main.async {
+            self.scoreLabel.isHidden = true
+            self.genLabel.isHidden = true
+            self.progressLabel.stringValue = "Populating networks..."
+            self.progressLabel.isHidden = false
+            self.progressBar.minValue = 0
+            self.progressBar.maxValue = 999
+            self.progressBar.doubleValue = 0
+            self.progressBar.isHidden = false
+            self.progressBar.display()
+        }
+        
         for _ in 1...1000 {
+            DispatchQueue.main.async {
+                self.progressBar.increment(by: 1)
+                self.progressBar.display()
+            }
+            
             let net = Network()
             net.configure(layers: 4, nodes: [24,16,16,4])
             net.randomize(weightVariance: 2, biasVariance: 0)
             networks.append(net)
         }
+        
+        DispatchQueue.main.async {
+            self.progressBar.isHidden = true
+            self.progressLabel.isHidden = true
+        }
+        
+        needsInitialize = false
     }
     
     @IBAction func nextGen(_ sender: Any) {
+        if needsInitialize {
+            queue.async {
+                self.newRun()
+            }
+        }
+        
         queue.async {
+            if self.needsRepopulate {
+                self.repopulate(range:100, mutationRate: 0.05)
+            }
             self.nextGen()
-            self.repopulate(range:100, mutationRate: 0.05)
         }
     }
     
     func nextGen() {
         self.currentGen += 1
         DispatchQueue.main.async {
-            self.genView.stringValue = "Gen: \(self.currentGen)"
-            
+            self.genLabel.stringValue = "Gen: \(self.currentGen)"
+            self.genLabel.isHidden = false
             self.progressLabel.isHidden = false
             self.progressLabel.stringValue = "Simulating networks..."
             self.progressBar.minValue = 0
@@ -79,6 +120,13 @@ class Trainer: NSObject {
         networks = sortNets(unsortedArray: networks)!
         networks.reverse()
         print("best score:\(networks[0].score)")
+        DispatchQueue.main.async {
+            self.progressLabel.isHidden = true
+            self.progressBar.isHidden = true
+            self.scoreLabel.isHidden = false
+            self.scoreLabel.stringValue = "Best Score: \(self.networks[0].score)"
+        }
+        needsRepopulate = true
     }
     
     
@@ -99,6 +147,8 @@ class Trainer: NSObject {
         let total = networks.count
         
         DispatchQueue.main.async {
+            self.progressLabel.isHidden = false
+            self.progressBar.isHidden = false
             self.progressLabel.stringValue = "Repopulating..."
             self.progressBar.doubleValue = 0
             self.progressBar.minValue = 0
@@ -122,7 +172,7 @@ class Trainer: NSObject {
             newNets.append(newNet)
         }
         networks = newNets
-        
+        needsRepopulate = false
         DispatchQueue.main.async {
             self.progressLabel.isHidden = true
             self.progressBar.isHidden = true
@@ -130,6 +180,12 @@ class Trainer: NSObject {
     }
     
     @IBAction func begin(_ sender: Any) {
+        if needsInitialize {
+            queue.async {
+                self.newRun()
+            }
+        }
+
         shouldRun = true
         queue.async {
             while self.shouldRun {
