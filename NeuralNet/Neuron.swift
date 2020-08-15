@@ -37,12 +37,10 @@ class Neuron : NSObject, NSCopying {
     }
     
     func randomizeConnections(variance : Double = 2) {
-        if connections != nil {
-            for connection in connections {
-                
-                connection.weight = (Double(Double(arc4random()) / Double(UINT32_MAX)) * variance - (variance / 2))
-                
-            }
+        for connection in connections {
+            
+            connection.weight = (Double(Double(arc4random()) / Double(UINT32_MAX)) * variance - (variance / 2))
+            
         }
     }
     
@@ -51,11 +49,14 @@ class Neuron : NSObject, NSCopying {
             return false
         }
         
+        //sum all the connection values
         doubleValue = 0.0
         for connection in self.connections {
             doubleValue += connection.simulate()
         }
         
+        
+        //if useSigmoid is true, run the sigmoid function on the ending value, then apply bias
         if useSigmoid {
             doubleValue = sigmoid(doubleValue) + bias
         } else {
