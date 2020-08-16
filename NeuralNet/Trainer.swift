@@ -92,27 +92,36 @@ class Trainer: NSObject {
             self.progressBar.display()
         }
         var count = 1
-        let game = SnakeGame()
+        let netQueue = DispatchQueue(label: "networkQueue", qos: DispatchQoS.background, attributes: DispatchQueue.Attributes.concurrent, autoreleaseFrequency: DispatchQueue.AutoreleaseFrequency.inherit, target: nil)
+        let netGroup = DispatchGroup()
+
         
         for net in networks {
-            //update progress bar
-            DispatchQueue.main.async {
-                self.progressBar.increment(by: 1)
-                self.progressBar.display()
+            netQueue.async {
+                netGroup.enter()
+                
+                //update progress bar
+                
+                //run each network in the array, saving its final score to the score property of the network.
+                let game = SnakeGame()
+                game.configure(height: 15, width: 15)
+                while game.gameActive {
+                    let inputs = game.inputs()
+                    net.run(inputs: inputs)
+                    let adapter = SnakeAdapter(network: net)
+                    game.run(with: adapter.moveType())
+                }
+                net.score = game.fitness()
+                net.replay = game.replay
+                count += 1
+                netGroup.leave()
+                DispatchQueue.main.async {
+                    self.progressBar.increment(by: 1)
+                    self.progressBar.display()
+                }
             }
-            
-            //run each network in the array, saving its final score to the score property of the network.
-            game.configure(height: 15, width: 15)
-            while game.gameActive {
-                let inputs = game.inputs()
-                net.run(inputs: inputs)
-                let adapter = SnakeAdapter(network: net)
-                game.run(with: adapter.moveType())
-            }
-            net.score = game.fitness()
-            net.replay = game.replay
-            count += 1
         }
+        netGroup.wait()
         
         networks = sortNets(unsortedArray: networks)!
         networks.reverse()
