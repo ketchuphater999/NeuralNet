@@ -17,13 +17,17 @@ class Trainer: NSObject {
     @IBOutlet weak var progressBar : NSProgressIndicator!
     var shouldRun : Bool = false
     var needsRepopulate : Bool = false
-    var needsInitialize : Bool = true
     var snakeGame : SnakeGame!
     var networks : [Network] = []
     var outputs : [Double] = []
     var currentGen : Int = 0
     
     let queue = DispatchQueue(label: "com.maya.neural-net")
+    
+    override init() {
+        super.init()
+        self.newRun()
+    }
     
     @IBAction func newRun(_ sender: Any) {
         queue.async {
@@ -63,16 +67,9 @@ class Trainer: NSObject {
             self.progressLabel.isHidden = true
         }
         
-        needsInitialize = false
     }
     
     @IBAction func nextGen(_ sender: Any) {
-        if needsInitialize {
-            queue.async {
-                self.newRun()
-            }
-        }
-        
         queue.async {
             if self.needsRepopulate {
                 self.repopulate(range:100, mutationRate: 0.05)
@@ -105,7 +102,6 @@ class Trainer: NSObject {
             }
             
             //run each network in the array, saving its final score to the score property of the network.
-            print("running net \(count)")
             game.configure(height: 15, width: 15)
             while game.gameActive {
                 let inputs = game.inputs()
@@ -117,6 +113,7 @@ class Trainer: NSObject {
             net.replay = game.replay
             count += 1
         }
+        
         networks = sortNets(unsortedArray: networks)!
         networks.reverse()
         print("best score:\(networks[0].score)")
@@ -180,12 +177,6 @@ class Trainer: NSObject {
     }
     
     @IBAction func begin(_ sender: Any) {
-        if needsInitialize {
-            queue.async {
-                self.newRun()
-            }
-        }
-
         shouldRun = true
         queue.async {
             while self.shouldRun {
