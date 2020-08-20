@@ -20,7 +20,7 @@ class SnakeTile: NSObject, NSCopying {
     var age : Int = 0
     var position : NSPoint = NSPoint()
     var next : SnakeTile!
-    var previous : SnakeTile!
+    weak var previous : SnakeTile!
     
     func copy(with zone: NSZone? = nil) -> Any {
         var copy = SnakeTile()
