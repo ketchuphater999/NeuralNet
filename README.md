@@ -10,3 +10,6 @@ The snake can 'see' in 8 directions: the four cardinal directions and the four d
 
 ## Usage
 You can download the built app to run on macOS 10.13 or later [here](https://mega.nz/file/W4Eh0IwL#CKJXhuSFu8JU-4AAdKUBjPtTWN5lEs4x8iMfOzogp8s).
+
+## Other details
+The basic design of the genetic algorithm and scoring was inspired by multiple projects shown on YouTube and other sites. The design of the game logic and neural net is original.
