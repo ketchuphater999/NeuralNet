@@ -11,5 +11,5 @@ The snake can 'see' in 8 directions: the four cardinal directions and the four d
 ## Usage
 You can download the built app to run on macOS 10.13 or later [here](https://mega.nz/file/W4Eh0IwL#CKJXhuSFu8JU-4AAdKUBjPtTWN5lEs4x8iMfOzogp8s).
 
-## Other details
-The basic design of the genetic algorithm and scoring was inspired by multiple projects shown on YouTube and other sites. The design of the game logic and neural net is original.
+## Comments
+The basic design of the genetic algorithm, scoring, as well as the chosen set of inputs was inspired by multiple projects shown on YouTube and other sites. The design of the game logic and neural net is original. I made some modifications and improvements to the snake "sight" (the network inputs)-- instead of using a boolean 0/1 to designate whether there is a food or body piece in a given sightline, this code uses the inverse of the distance to the food or closest body segment. I also played around with adding an extra 8 inputs to provide information about the tail piece of the snake, to allow it to learn more nuanced maneuverability. This proved to be more of a hindrance than a benefit however as it resulted in far slower training, for hardly any benefit.
