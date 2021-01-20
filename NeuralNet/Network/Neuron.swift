@@ -33,35 +33,43 @@ class Neuron : NSObject, NSCopying {
     }
     
     func randomizeBias(variance : Double = 2) {
+        //set the bias value to a random number within the given range
+        
         bias = (Double(Double(arc4random()) / Double(UINT32_MAX)) * variance - (variance / 2))
     }
     
     func randomizeConnections(variance : Double = 2) {
+        //set each connection's weight to a random number within the given range
+        
         for connection in connections {
-            
             connection.weight = (Double(Double(arc4random()) / Double(UINT32_MAX)) * variance - (variance / 2))
-            
         }
     }
     
     func runConnections() -> Bool {
+        //simulate all connections belonging to the neuron, then update the neuron's value
+        
+        var newValue : Double = 0.0
+        
         if self.connections.count == 0 {
             return false
         }
         
         //sum all the connection values
-        doubleValue = 0.0
         for connection in self.connections {
-            doubleValue += connection.simulate()
+            newValue += connection.simulate()
         }
         
         
         //if useSigmoid is true, run the sigmoid function on the ending value, then apply bias
         if useSigmoid {
-            doubleValue = sigmoid(doubleValue) + bias
+            newValue = sigmoid(doubleValue) + bias
         } else {
-            doubleValue += bias
+            newValue += bias
         }
+        
+        //update the neuron's value
+        doubleValue = newValue
         
         return true
     }

@@ -15,6 +15,7 @@ class Trainer: NSObject {
     @IBOutlet weak var progressLabel : NSTextField!
     @IBOutlet weak var scoreLabel : NSTextField!
     @IBOutlet weak var progressBar : NSProgressIndicator!
+    
     var shouldRun : Bool = false
     var needsRepopulate : Bool = false
     var snakeGame : SnakeGame!
@@ -36,6 +37,8 @@ class Trainer: NSObject {
     }
     
     func newRun() {
+        //initialize a fresh randomized set of networks to begin training
+        
         networks = []
         //populate the array with randomized networks
         DispatchQueue.main.async {
@@ -51,6 +54,7 @@ class Trainer: NSObject {
         }
         
         for _ in 1...1000 {
+            //asynchronously update the progress bar
             DispatchQueue.main.async {
                 self.progressBar.increment(by: 1)
                 self.progressBar.display()
@@ -70,6 +74,7 @@ class Trainer: NSObject {
     }
     
     @IBAction func nextGen(_ sender: Any) {
+        //repopulate if needed, then run the next set of networks
         queue.async {
             if self.needsRepopulate {
                 self.repopulate(range:100, mutationRate: 0.05)
@@ -79,7 +84,10 @@ class Trainer: NSObject {
     }
     
     func nextGen() {
+        //run games for each network, then sort the array by score.
         self.currentGen += 1
+        
+        //update all display values
         DispatchQueue.main.async {
             self.genLabel.stringValue = "Gen: \(self.currentGen)"
             self.genLabel.isHidden = false
@@ -95,26 +103,29 @@ class Trainer: NSObject {
         let netQueue = DispatchQueue(label: "networkQueue", qos: DispatchQoS.background, attributes: DispatchQueue.Attributes.concurrent, autoreleaseFrequency: DispatchQueue.AutoreleaseFrequency.inherit, target: nil)
         let netGroup = DispatchGroup()
 
-        
+        //run each game asynchronously and wait for all games to finish before progressing.
         for net in networks {
             netQueue.async {
                 netGroup.enter()
-                
-                //update progress bar
-                
                 //run each network in the array, saving its final score to the score property of the network.
+                
                 let game = SnakeGame()
                 game.configure(height: 15, width: 15)
+                
                 while game.gameActive {
                     let inputs = game.inputs()
                     net.run(inputs: inputs)
                     let adapter = SnakeAdapter(network: net)
                     game.run(with: adapter.moveType())
                 }
+                
                 net.score = game.fitness()
                 net.replay = game.replay
                 count += 1
+                
                 netGroup.leave()
+                
+                //increment the progress bar
                 DispatchQueue.main.async {
                     self.progressBar.increment(by: 1)
                     self.progressBar.display()
@@ -122,7 +133,9 @@ class Trainer: NSObject {
             }
         }
         netGroup.wait()
+        //proceed once all networks have finished playing
         
+        //sort networks and flag for repopulation
         networks = sortNets(unsortedArray: networks)!
         networks.reverse()
         print("best score:\(networks[0].score)")
@@ -147,11 +160,12 @@ class Trainer: NSObject {
     }
     
     func repopulate(range: Int, mutationRate: Double) {
-        // use the the networks within [range] to repopulate the array by crossing and then mutating
+        //use the the networks within [range] to repopulate the array by crossing and then mutating
         var newNets : [Network] = []
         var bestNets : [Network] = Array(networks[0..<range])
         let total = networks.count
         
+        //update display values
         DispatchQueue.main.async {
             self.progressLabel.isHidden = false
             self.progressBar.isHidden = false
@@ -162,23 +176,29 @@ class Trainer: NSObject {
             self.progressBar.display()
         }
         
+        //use the genetic algorithm to create new networks until the array is fully repopulated
         while newNets.count < total {
             DispatchQueue.main.async {
                 self.progressBar.doubleValue = Double(newNets.count)
                 self.progressBar.display()
             }
             
+            //select a pair of networks to 'breed'
             let parent1 = Int(arc4random_uniform(UInt32(range)))
             var parent2 = Int(arc4random_uniform(UInt32(range)))
             while parent1 == parent2 {
                 parent2 = Int(arc4random_uniform(UInt32(range)))
             }
+            
+            //create a new network from the chosen parents, and add it to the array
             let newNet = bestNets[parent1].networkByCrossing(partner: bestNets[parent2])
             newNet.mutate(mutationRate: mutationRate)
             newNets.append(newNet)
         }
+        
         networks = newNets
         needsRepopulate = false
+        
         DispatchQueue.main.async {
             self.progressLabel.isHidden = true
             self.progressBar.isHidden = true
@@ -225,19 +245,27 @@ class Trainer: NSObject {
         //load a property list from a .plist file, and import it into a new network.
         let panel = NSOpenPanel()
         let network = Network()
+        
+        //configure the panel and then trigger it
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.canCreateDirectories = false
         panel.canChooseFiles = true
         panel.begin(completionHandler: { (result) in
+            
             if result == NSApplication.ModalResponse.OK {
+                //decode the plist into a model
                 let modelURL = panel.url
                 let data = try! Data.init(contentsOf: modelURL!)
                 let model = try! PropertyListSerialization.propertyList(from: data, options: [], format: nil)
+                
+                //import the model into the network object
                 network.importModel(model: model as! [[Any]])
                 
+                //initialize a new snake game and let the network play :)
                 let game = SnakeGame()
                 game.configure(height: 15, width: 15, view: self.snakeView)
+                
                 self.queue.async {
                     while game.gameActive {
                         let inputs = game.inputs()
@@ -255,8 +283,10 @@ class Trainer: NSObject {
         //sort networks by score, highest first.
         var sortedArray = unsortedArray
         if sortedArray.count < 2 { return nil }
+        
         for j in 0...sortedArray.count-1 {
             var i = j
+            
             while(i > 0 && sortedArray[i-1].score > sortedArray[i].score) {
                 sortedArray.swapAt(i, i-1)
                 i -= 1

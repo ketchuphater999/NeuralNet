@@ -19,6 +19,8 @@ class Network : NSObject, NSCopying {
     var replay : [Any]!
     
     func copy(with zone: NSZone? = nil) -> Any {
+        //return a deep copy of the network
+        
         let copyOfNetwork : Network = Network()
         
         copyOfNetwork.configure(layers: layersCount, nodes: nodesPerLayer)

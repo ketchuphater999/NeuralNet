@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:NeuralNet.xcodeproj">
+      location = "self:/Users/maya/Documents/XCode/NeuralNet/NeuralNet.xcodeproj">
    </FileRef>
 </Workspace>

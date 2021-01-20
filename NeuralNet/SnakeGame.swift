@@ -30,12 +30,15 @@ class SnakeGame: NSObject {
         height = newHeight
         width = newWidth
         snakeView = newView
+        
         if snakeView != nil { snakeView.game = self }
+        
         remainingMoves = 200
         snakeLength = 1
         score = 0
         lifetime = 0
         gameActive = true
+        
         snakeData = [[]]
         replay = []
         
@@ -153,6 +156,7 @@ class SnakeGame: NSObject {
     
     func newFood() {
         //generate a new food position that doesn't intersect with the snake head or body
+        
         var foodPos = NSMakePoint(CGFloat(Int.random(in: 0..<width)),CGFloat(Int.random(in: 0..<height)))
         while doesHit(point: foodPos, head: false) {
             foodPos = NSMakePoint(CGFloat(Int.random(in: 0..<width)),CGFloat(Int.random(in: 0..<height)))
@@ -161,6 +165,8 @@ class SnakeGame: NSObject {
     }
     
     func inputs() -> [Double] {
+        //this function performs a vision check and returns an array of values indicating the distance
+        //from the snake's head to the wall, its body, and the food piece in each of the 8 directions.
         
         var vision : [Double] = []
         var body : [NSPoint] = []
@@ -227,7 +233,7 @@ class SnakeGame: NSObject {
             }
         }
         
-        //replace NaN with 0 in all instances
+        //replace all instances of NaN with 0
         for i in 0 ..< vision.count {
             if vision[i].isNaN {
                 vision[i] = 0
@@ -267,7 +273,8 @@ class SnakeGame: NSObject {
     }
 
     func fitness() -> Double {
-        //calculate fitness
+        //calculate a fitness value
+        
         var fitness : Double = 0
         if score < 10 {
             fitness = round(Double(lifetime*lifetime)) * pow(2, Double(score))
@@ -280,6 +287,8 @@ class SnakeGame: NSObject {
     }
     
     func runReplay(_ replay : [[String : SnakeTile]]) {
+        //display a replay of a previously recorded game of snake.
+        
         gameActive = true
         for state in replay {
             //load each state from the replay and display them

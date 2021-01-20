@@ -5,6 +5,9 @@
 //  Created by Maya Luna Celeste on 8/5/20.
 //  Copyright © 2020 Maya Luna Celeste. All rights reserved.
 //
+//
+//  definition of a linked-list element to be used as the snake body
+//
 
 import Cocoa
 

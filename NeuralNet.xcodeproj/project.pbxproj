@@ -116,9 +116,7 @@
 			children = (
 				6CCDCCC224B2E1C300346C55 /* AppDelegate.swift */,
 				6CB038BB24E497F80064B5C7 /* Trainer.swift */,
-				6CCDCCF024B2E30A00346C55 /* Network.swift */,
-				6CCDCCEE24B2E2FE00346C55 /* Neuron.swift */,
-				6CCDCCEC24B2E2F800346C55 /* Connection.swift */,
+				6CE138FC25B850EA00C5DDEA /* Network */,
 				6C046C8A24DA80EE008917AE /* SnakeAdapter.swift */,
 				6C046C9024DA8FB6008917AE /* SnakeGame.swift */,
 				6C046C8C24DA8660008917AE /* SnakeTile.swift */,
@@ -150,6 +148,16 @@
 				6CCDCCE024B2E1C400346C55 /* Info.plist */,
 			);
 			path = NeuralNetUITests;
+			sourceTree = "<group>";
+		};
+		6CE138FC25B850EA00C5DDEA /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				6CCDCCF024B2E30A00346C55 /* Network.swift */,
+				6CCDCCEE24B2E2FE00346C55 /* Neuron.swift */,
+				6CCDCCEC24B2E2F800346C55 /* Connection.swift */,
+			);
+			path = Network;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
